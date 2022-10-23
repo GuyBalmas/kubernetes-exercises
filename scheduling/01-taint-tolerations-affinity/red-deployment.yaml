@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: red
+  name: red
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: red
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: red
+    spec:
+      #This will allow our red pods to be able to be scheduled upon the red node (they will tolerate the `color=red` taint).
+      tolerations:
+        - key: "color"             # label name
+          operator: "Equal"        # operator
+          value: "red"             # label value
+          effect: "NoSchedule"    # taint-effect
+      #This will schedule our red pods ONLY on the red node (will look for `color=red` label on the node)
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: color
+                    operator: In
+                    values:
+                      - red
+      containers:
+        - image: nginx
+          name: nginx
+          resources: {}
+status: {}

@@ -112,5 +112,5 @@ kubectl apply -f green-deployment.yaml
 kubectl get pods -o wide --watch
 ```
 
-#### Finally, you will see each color is scheduled on a dedicated worker node designed for that specific color:
-![](scheduling/01-taint-tolerations-affinity/result.png)
+You will see each color is scheduled on a dedicated worker node designed for that specific color:
+![](result.png)

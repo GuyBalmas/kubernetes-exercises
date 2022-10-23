@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  creationTimestamp: null
+  labels:
+    app: blue
+  name: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: blue
+  strategy: {}
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: blue
+    spec:
+      #This will allow our blue pods to be able to be scheduled upon the blue node (they will tolerate the `color=blue` taint).
+      tolerations:
+        - key: "color"             # label name
+          operator: "Equal"        # operator
+          value: "blue"            # label value
+          effect: "NoSchedule"     # taint-effect
+      #This will schedule our blue pods ONLY on the blue node (will look for `color=blue` label on the node)
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: color
+                    operator: In
+                    values:
+                      - blue
+      containers:
+        - image: nginx
+          name: nginx
+          resources: {}
+status: {}
