@@ -113,4 +113,4 @@ kubectl get pods -o wide --watch
 ```
 
 You will see each color is scheduled on a dedicated worker node designed for that specific color:
-![](result.png)
+![](../../images/scheduling/result.png)
