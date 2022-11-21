@@ -1,26 +1,24 @@
 # ETCD backup and restore exercise
 
-- reference: https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/#backing-up-an-etcd-cluster
 
 All Kubernetes objects are stored on `etcd`. 
 Periodically backing up the `etcd` cluster data is important to recover Kubernetes clusters under disaster scenarios, such as losing all `controlplane` nodes.
-
 The snapshot file contains all the Kubernetes states and critical information. 
-In this exercise we will backup and restore and `etcd` server hosted on minikube.
+
+In this exercise we will backup and restore an `etcd` server hosted on `minikube`.
 
 ## Prerequisites:
 1. minikube: `version: v1.26.1`
 
 2. docker: `version: 20.10.17`
 
-
-## 1. Explore the ETCD
+## 1. Explore the ETCD 
 First of all let's create a minikube cluster:
 ```bash
 minikube start
 ```
 
-On `minikube`, we get an internal `etcd` server running as a single static pod on the `controlplane` node (named  minikube).
+On `minikube`, we get an internal `etcd` server running as a single static pod on the `controlplane` node (named  `minikube`).
 Let's explore:
 ```bash
 kubectl get pods -n kube-system
@@ -96,7 +94,7 @@ Few args to keep in mind for taking a snapshot later:
 ```
 
 ## 2. Take a snapshot:
-### Deploy apps:
+### Deploy apps
 Before we take a snapshot, let's run a few pods in our `minikube` cluster:
 ```bash
 kubectl create ns apps
@@ -111,12 +109,13 @@ kubectl get pods -n apps
 
 ![img.png](../../images/cluster-maintenance/1.png)
 
-### Now let's backup our cluster:
+### Backup
 `etcd` supports built-in snapshot.
 A snapshot may either be taken with `etcdctl snapshot save` command or by copying the `member/snap/db` file from an `etcd` data directory that is not currently used by an `etcd` process.
-We will utilize the `etcdctl snapshot save` command:
 
-#### important: `etcdctl` isn't installed on `minikube` controlplane node by default.
+Let's take a snapshot and backup our cluster by utilizing the `etcdctl snapshot save` command:
+
+#### important: `etcdctl` isn't installed on `minikube` controlplane node by default, hence needs to be installed.
 ```bash
 # ssh into minikube node
 minikube ssh
@@ -130,7 +129,7 @@ etcdctl --version
 
 ![img.png](../../images/cluster-maintenance/2.png)
 
-we will use etcd `api v3`, along with the required arguments, which are specified in the `etcd` static pod's manifest:
+We will use etcd `api v3`, along with the required arguments, which are specified in the `etcd` static pod's manifest:
 ```bash
 # take a snapshot named `snapshot.db`
 sudo ETCDCTL_API=3 etcdctl snapshot save snapshot.db \
@@ -162,14 +161,14 @@ sudo ETCDCTL_API=3 etcdctl --write-out=table snapshot status snapshot.db
 
 ![img.png](../../images/cluster-maintenance/4.png)
 
-close ssh session:
+Close `ssh` session:
 ```bash
 exit
 ```
 
 ## 3. Restore
 ### Disaster Recovery
-First step of disaster recovery is obviously 'disaster', so now that we have a few apps in our cluster, let's kill them all. 
+First step of disaster recovery is obviously '**disaster**', so now that we have a few apps in our cluster, let's kill them all. 
 We will restore them from the snapshot we took of the `etcd` pre-disaster state.
 ```bash
 # kill 
@@ -198,6 +197,7 @@ sudo ETCDCTL_API=3 etcdctl snapshot restore snapshot.db \
 
 ### Modify the manifest
 Now we need to point the etcd static pod (`etcd-minikube`) to the directory we restored the `etcd` backup snapshot to.
+- `etcd` pod manifest path: `/etc/kubernetes/manifests/etcd.yaml`
 ```bash
 # minikube comes with vi text editor installed, 
 # but you can also install `vim` or `nano` or any other text editor of your choice
@@ -209,7 +209,7 @@ echo "set nocompatible" > .vimrc
 # edit the static pod's manifest 
 sudo vim /etc/kubernetes/manifests/etcd.yaml
 ```
-edit the `etcd`'s static pod manifest, and point the `etcd-data` volume directory to the data directory we restored the etcd snapshot to (`/var/lib/minikube/etcd-backup`).
+Edit the `etcd`'s static pod manifest, and point the `etcd-data` volume directory to the data directory we restored the etcd snapshot to (`/var/lib/minikube/etcd-backup`).
 ```yaml
 [...]
 spec:
@@ -225,8 +225,7 @@ spec:
 sudo cat /etc/kubernetes/manifests/etcd.yaml
 ```
 
-after modifying the manifest, it will take a short period of time (a few minutes) for the `etcd` to come back up with the restored cluster.
-
+After modifying the manifest, it will take a short period of time (up to a few minutes) for the `etcd` to come back up with the restored cluster.
 Once the `etcd` is running again, you will be able to see the pods:
 ```bash
 kubectl get pods -n apps 
@@ -235,4 +234,4 @@ kubectl get pods -n apps
 
 ![img.png](../../images/cluster-maintenance/7.png)
 
-As we can see, all our pods were deployed back to the cluster, hence the 'AGE' isn't 0.
+As we can see, all our pods were deployed back to the cluster, hence the 'AGE' is greater than 0 (indicates the original time of creation).
