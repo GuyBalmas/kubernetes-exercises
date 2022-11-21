@@ -1,6 +1,5 @@
 # ETCD backup and restore exercise
 
-
 All Kubernetes objects are stored on `etcd`. 
 Periodically backing up the `etcd` cluster data is important to recover Kubernetes clusters under disaster scenarios, such as losing all `controlplane` nodes.
 The snapshot file contains all the Kubernetes states and critical information. 
