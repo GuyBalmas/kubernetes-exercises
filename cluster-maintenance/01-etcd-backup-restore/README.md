@@ -1,10 +1,17 @@
 # ETCD backup and restore exercise
+`etcd` is a consistent and highly-available key-value store used as Kubernetes' backing store for all cluster data.
 
-All Kubernetes objects are stored on `etcd`. 
-Periodically backing up the `etcd` cluster data is important to recover Kubernetes clusters under disaster scenarios, such as losing all `controlplane` nodes.
-The snapshot file contains all the Kubernetes states and critical information. 
+If your Kubernetes cluster uses `etcd` as its backing store (which is by default), it means that all of your cluster objects and their related data are stored on the `etcd` server.
+
+Therefore, periodically backing up the `etcd` cluster data is important to recover Kubernetes clusters under disaster scenarios, such as losing all `controlplane` nodes.
+
+For that exact purpose we can utilize the `etcdctl` CLI (command line interface) which offers the ability of taking a snapshot file, containing all the Kubernetes cluster data, states and critical information. 
 
 In this exercise we will backup and restore an `etcd` server hosted on `minikube`.
+
+### Docs:
+- Operating `etcd` clusters for Kubernetes: https://kubernetes.io/docs/tasks/administer-cluster/configure-upgrade-etcd/
+- Disaster recovery: https://etcd.io/docs/v3.5/op-guide/recovery/
 
 ## Prerequisites:
 1. minikube: `version: v1.26.1`
